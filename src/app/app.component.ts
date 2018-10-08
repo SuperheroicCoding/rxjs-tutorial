@@ -1,5 +1,6 @@
 import {AfterViewInit, Component, OnDestroy} from '@angular/core';
-import {Observer, Subscription} from 'rxjs';
+import {fromEvent, interval, Observer, Subscription} from 'rxjs';
+import {filter, map, repeat, switchMap, switchMapTo, takeUntil, tap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -30,7 +31,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   initObservable(): void {
     if (this.subscriptions) {
       this.subscriptions.unsubscribe();
-
     }
     this.clear();
     this.log('init observables');
@@ -41,7 +41,63 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       complete: () => this.log(prefix + ' complete')
     });
 
+    // counter
+    const startButton: HTMLButtonElement = document.querySelector('#start-button');
+    const stopButton: HTMLButtonElement = document.querySelector('#stop-button');
 
+    const startCounter$ = fromEvent(startButton, 'click');
+    const stopCounter$ = fromEvent(stopButton, 'click');
+    const interval$ = interval(1000);
+
+    const observerCounter = observer('counter:');
+
+    this.subscriptions =
+      startCounter$.pipe(
+        switchMapTo(interval$),
+        takeUntil(stopCounter$),
+        repeat(),
+      )
+        .subscribe(observerCounter);
+
+// drag and drop
+    const dragAndDropTarget: HTMLDivElement = document.querySelector('#drag-and-drop-item');
+    dragAndDropTarget.style.top = 0 + 'px';
+    dragAndDropTarget.style.left = 0 + 'px';
+    const mouseDownDD$ = fromEvent(dragAndDropTarget, 'mousedown');
+    const mouseUpDD$ = fromEvent(document, 'mouseup');
+    const mapStartPos = map(({offsetX, offsetY}: MouseEvent) => ({
+      startX: offsetX,
+      startY: offsetY
+    }));
+
+
+    const ddContainer: HTMLDivElement = document.querySelector('.drag-and-drop-container');
+    const switchMapElementPosition$ = switchMap(({startX, startY}) =>
+      fromEvent(ddContainer, 'mousemove').pipe(
+        map((event: MouseEvent) => {
+            event.preventDefault();
+            const {offsetX, offsetY} = event;
+            return {
+              top: offsetY - startY,
+              left: offsetX - startX
+            };
+          }
+        )
+      ));
+
+    this.subscriptions.add(
+      mouseDownDD$.pipe(
+        mapStartPos,
+        switchMapElementPosition$,
+        filter(({top, left}) => top > -1 && left > -1),
+        tap((pos) => {
+          dragAndDropTarget.style.top = pos.top + 'px';
+          dragAndDropTarget.style.left = pos.left + 'px';
+        }),
+        takeUntil(mouseUpDD$),
+        repeat(),
+      ).subscribe(observer('drag and drop'))
+    );
   }
 
   clear() {
