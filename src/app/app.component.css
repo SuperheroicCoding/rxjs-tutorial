@@ -1,0 +1,65 @@
+:host {
+  height: 100vh;
+  overflow: hidden;
+  display: block;
+}
+
+mat-card.mat-card {
+  display: block;
+  overflow: auto;
+  height: calc(100vh - 70px);
+}
+
+mat-card-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: calc(100vh - 200px);
+  align-content: start;
+  justify-content: left;
+}
+
+.left {
+  display: grid;
+  grid-gap: 1rem;
+  grid-template-rows: repeat(auto-fit, 1fr);
+  grid-template-columns: 1fr;
+  align-content: start;
+  justify-content: left;
+}
+
+.right {
+  height: calc(100vh - 200px);
+  overflow: auto;
+}
+
+.drag-and-drop-container {
+  margin-top: 1rem;
+  height: 200px;
+  border: 1px solid black;
+  position: relative;
+}
+
+.drag-and-drop-container:before {
+  content: 'Drag & Drop';
+  top: -1rem;
+  position: absolute;
+}
+
+#drag-and-drop-item {
+  position: absolute;
+  cursor: grab;
+  padding: 4px;
+  border: 1px white solid;
+}
+
+mat-list.logs .mat-list-item {
+  height: auto;
+  font-family: 'Courier New', 'monospace';
+  padding: 0 4px;
+}
+
+
+
+
+
+
